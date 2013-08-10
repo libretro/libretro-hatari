@@ -270,15 +270,15 @@ static SGOBJ systemdlg[] =
 
 	{ SGBOX, 0, 0, 32,3, 12,9, NULL },
 	{ SGTEXT, 0, 0, 33,3, 15,1, "CPU clock" },
-	{ SGRADIOBUT, 0, 0, 33,5, 3,1, " 8 Mhz" },
-	{ SGRADIOBUT, 0, 0, 33,6, 4,1, "16 Mhz" },
-	{ SGRADIOBUT, 0, 0, 33,7, 4,1, "32 Mhz" },
+	{ SGRADIOBUT, 0, 0, 33,5, 8,1, " 8 Mhz" },
+	{ SGRADIOBUT, 0, 0, 33,6, 8,1, "16 Mhz" },
+	{ SGRADIOBUT, 0, 0, 33,7, 8,1, "32 Mhz" },
 
 	{ SGBOX, 0, 0, 46,3, 12,9, NULL },
 	{ SGTEXT, 0, 0, 47,3, 11,1, "Falcon DSP" },
-	{ SGRADIOBUT, 0, 0, 47,5, 5,1, "None" },
+	{ SGRADIOBUT, 0, 0, 47,5, 6,1, "None" },
 	{ SGRADIOBUT, 0, 0, 47,6, 7,1, "Dummy" },
-	{ SGRADIOBUT, 0, 0, 47,7, 4,1, "Full" },
+	{ SGRADIOBUT, 0, 0, 47,7, 6,1, "Full" },
 
 	{ SGBOX, 0, 0, 2,13, 28,9, NULL },
 	{ SGTEXT, 0, 0, 3,13, 11,1, "CPU Pamameters" },
@@ -288,15 +288,15 @@ static SGOBJ systemdlg[] =
 	{ SGCHECKBOX, 0, 0, 3,18, 27,1, "Real time clock emulation" },
 	{ SGCHECKBOX, 0, 0, 3,19, 15,1, "Patch Timer-D" },
 	{ SGCHECKBOX, 0, 0, 3,20, 20,1, "Blitter emulation" },
-	{ SGCHECKBOX, 0, 0, 3,21, 15,1, "040 MMU emulation" },
+	{ SGCHECKBOX, 0, 0, 3,21, 15,1, "MMU emulation" },
 
 	{ SGBOX, 0, 0, 32,13, 26,9, NULL },
 	{ SGTEXT, 0, 0, 33,13, 11,1, "FPU" },
-	{ SGRADIOBUT, 0, 0, 33,15, 5,1, "None" },
+	{ SGRADIOBUT, 0, 0, 33,15, 6,1, "None" },
 	{ SGRADIOBUT, 0, 0, 33,16, 7,1, "68881" },
-	{ SGRADIOBUT, 0, 0, 33,17, 4,1, "68882" },
-	{ SGRADIOBUT, 0, 0, 33,18, 4,1, "CPU internal" },
-	{ SGCHECKBOX, 0, 0, 33,20, 4,1, "More compatible, slower" },
+	{ SGRADIOBUT, 0, 0, 33,17, 7,1, "68882" },
+	{ SGRADIOBUT, 0, 0, 33,18, 14,1, "CPU internal" },
+	{ SGCHECKBOX, 0, 0, 33,20, 25,1, "More compatible, slower" },
 
 	{ SGBUTTON, SG_EXIT/*SG_DEFAULT*/, 0, 21,23, 20,1, "Back to main menu" },
 	{ -1, 0, 0, 0,0, 0,0, NULL }

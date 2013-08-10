@@ -120,6 +120,7 @@ int Dialog_MainDlg(bool *bReset, bool *bLoadedSnapshot)
 			{
 				/* Memory snapshot has been loaded - leave GUI immediately */
 				*bLoadedSnapshot = true;
+				//Main_WarpMouse(nOldMouseX, nOldMouseY);
 				return true;
 			}
 			break;

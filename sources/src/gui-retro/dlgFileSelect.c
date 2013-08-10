@@ -1,8 +1,8 @@
 /*
   Hatari - dlgFileSelect.c
  
-  This file is distributed under the GNU Public License, version 2 or at
-  your option any later version. Read the file gpl.txt for details.
+  This file is distributed under the GNU General Public License, version 2
+  or at your option any later version. Read the file gpl.txt for details.
  
   A file selection dialog for the graphical user interface for Hatari.
 */
@@ -19,20 +19,7 @@ const char DlgFileSelect_fileid[] = "Hatari dlgFileSelect.c : " __DATE__ " " __T
 #include "paths.h"
 #include "zip.h"
 
-#include "main.h"
-//#include "../includes/scandir.h"
-#include "sdlgui.h"
-#include "../includes/file.h"
-#include "../includes/paths.h"
-#include "../includes/zip.h"
-
-#if 0//def PS3PORT
-int alphasort2(const void *d1, const void *d2)
-{
-	return strcmp((*(struct dirent * const *)d1)->d_name,
-		      (*(struct dirent * const *)d2)->d_name);
-}
-#else
+//RETRO
 int alphasort2(const struct dirent **d1, const struct dirent **d2)
 {
 	    const struct dirent *c1;
@@ -41,22 +28,23 @@ int alphasort2(const struct dirent **d1, const struct dirent **d2)
 	    c2 = *d2;
 	    return strcmp(c1->d_name, c2->d_name);
 }
-#endif
 
 #define SGFS_NUMENTRIES   16            /* How many entries are displayed at once */
 
-#define SGFSDLG_FILENAME   5
-#define SGFSDLG_UPDIR      6
-#define SGFSDLG_HOMEDIR    7
-#define SGFSDLG_ROOTDIR    8
-#define SGFSDLG_ENTRYFIRST 11
-#define SGFSDLG_ENTRYLAST 26
-#define SGFSDLG_SCROLLBAR 27
-#define SGFSDLG_UP        28
-#define SGFSDLG_DOWN      29
-#define SGFSDLG_SHOWHIDDEN 30
-#define SGFSDLG_OKAY      31
-#define SGFSDLG_CANCEL    32
+
+#define SGFSDLG_FILENAME    5
+#define SGFSDLG_UPDIR       6
+#define SGFSDLG_CWD         7
+#define SGFSDLG_HOMEDIR     8
+#define SGFSDLG_ROOTDIR     9
+#define SGFSDLG_ENTRYFIRST 12
+#define SGFSDLG_ENTRYLAST  27
+#define SGFSDLG_SCROLLBAR  28
+#define SGFSDLG_UP         29
+#define SGFSDLG_DOWN       30
+#define SGFSDLG_SHOWHIDDEN 31
+#define SGFSDLG_OKAY       32
+#define SGFSDLG_CANCEL     33
 
 #define SCROLLOUT_ABOVE  1
 #define SCROLLOUT_UNDER  2
@@ -70,6 +58,8 @@ static char dlgfname[DLGFNAME_SIZE+1];  /* Name of the selected file in the dial
 #define DLGFILENAMES_SIZE 59
 static char dlgfilenames[SGFS_NUMENTRIES][DLGFILENAMES_SIZE+1];  /* Visible file names in the dialog */
 
+#define SCROLLBAR_MIN_HEIGHT 4		/* Min value for yScrollbar_size */
+
 /* The dialog data: */
 static SGOBJ fsdlg[] =
 {
@@ -79,7 +69,8 @@ static SGOBJ fsdlg[] =
 	{ SGTEXT, 0, 0, 1,3, DLGPATH_SIZE,1, dlgpath },
 	{ SGTEXT, 0, 0, 1,4, 6,1, "File:" },
 	{ SGTEXT, 0, 0, 7,4, DLGFNAME_SIZE,1, dlgfname },
-	{ SGBUTTON, SG_EXIT/*0*/, 0, 51,1, 4,1, ".." },
+	{ SGBUTTON, SG_EXIT/*0*/, 0, 45,1, 4,1, ".." },
+	{ SGBUTTON, SG_EXIT/*0*/, 0, 50,1, 5,1, "CWD" },
 	{ SGBUTTON, SG_EXIT/*0*/, 0, 56,1, 3,1, "~" },
 	{ SGBUTTON, SG_EXIT/*0*/, 0, 60,1, 3,1, "/" },
 	{ SGBOX, 0, 0, 1,6, 62,16, NULL },
@@ -100,23 +91,24 @@ static SGOBJ fsdlg[] =
 	{ SGTEXT, SG_EXIT, 0, 2,19, DLGFILENAMES_SIZE,1, dlgfilenames[13] },
 	{ SGTEXT, SG_EXIT, 0, 2,20, DLGFILENAMES_SIZE,1, dlgfilenames[14] },
 	{ SGTEXT, SG_EXIT, 0, 2,21, DLGFILENAMES_SIZE,1, dlgfilenames[15] },
-	{ SGSCROLLBAR,  SG_TOUCHEXIT , 0, 62, 7, 0, 0, NULL },       /* Scrollbar */ // SG_EXIT/* SG_TOUCHEXIT*/
-	{ SGBUTTON, SG_TOUCHEXIT/* SG_TOUCHEXIT*/ , 0, 62, 6,1,1, "\xCB"/*"\x01"*/ },          /* Arrow up */
-	{ SGBUTTON, SG_TOUCHEXIT/* SG_TOUCHEXIT*/ , 0, 62,21,1,1, "\xCA" /*"\x02"*/ },          /* Arrow down */
+	{ SGSCROLLBAR, SG_TOUCHEXIT, 0, 62, 7, 0, 0, NULL },       /* Scrollbar */
+	{ SGBUTTON, SG_TOUCHEXIT, 0, 62, 6,1,1, "\xCB"/*"\x01"*/  },          /* Arrow up */
+	{ SGBUTTON, SG_TOUCHEXIT, 0, 62,21,1,1, "\xCA"/*"\x02"*/  },          /* Arrow down */
 	{ SGCHECKBOX, SG_EXIT, 0, 2,23, 18,1, "Show hidden files" },
-	{ SGBUTTON, SG_EXIT/* SG_DEFAULT*/, 0, 32,23, 8,1, "Okay" },
-	{ SGBUTTON, SG_EXIT/*SG_CANCEL*/, 0, 50,23, 8,1, "Cancel" },
+	{ SGBUTTON, SG_EXIT /*SG_DEFAULT*/, 0, 32,23, 8,1, "Okay" },
+	{ SGBUTTON, SG_EXIT/* SG_CANCEL*/, 0, 50,23, 8,1, "Cancel" },
 	{ -1, 0, 0, 0,0, 0,0, NULL }
 };
 
 
-static int ypos;                        /* First entry number to be displayed */
-static bool refreshentries;             /* Do we have to update the file names in the dialog? */
-static int entries;                     /* How many files are in the actual directory? */
-static int oldMouseY = 0;				/* Keep the latest Y mouse position for scrollbar move computing */
+static int ypos = -1;				/* First entry number to be displayed. If -1, file selector start on the 1st file */
+						/* else we continue from the previous position when SDLGui_FileSelect is called again */
+static bool refreshentries;			/* Do we have to update the file names in the dialog? */
+static int entries;				/* How many files are in the actual directory? */
+static int oldMouseY = 0;			/* Keep the latest Y mouse position for scrollbar move computing */
 static int mouseClicked = 0;			/* used to know if mouse if down for the first time or not */
-static int mouseIsOut = 0;				/* used to keep info that mouse if above or under the scrollbar when mousebutton is down */
-static float scrollbar_Ypos = 0.0;	    /* scrollbar heigth */
+static int mouseIsOut = 0;			/* used to keep info that mouse if above or under the scrollbar when mousebutton is down */
+static float scrollbar_Ypos = 0.0;		/* scrollbar heigth */
 
 /* Convert file position (in file list) to scrollbar y position */
 static void DlgFileSelect_Convert_ypos_to_scrollbar_Ypos(void);
@@ -249,9 +241,8 @@ static void DlgFileSelect_ScrollDown(void)
 	}
 }
 
-
+//RETRO
 extern int gmx,gmy;
-extern int dbgobj,dbgoldobj,boutc;
 
 /*-----------------------------------------------------------------------*/
 /**
@@ -259,20 +250,18 @@ extern int dbgobj,dbgoldobj,boutc;
  */
 static void DlgFileSelect_ManageScrollbar(void)
 {
-	int i,b, x, y;
+	int b, x, y;
 	int scrollY, scrollYmin, scrollYmax, scrollH_half;
 	float scrollMove;
 	
-
-	x=gmx;y=gmy;
+	x=gmx;y=gmy;//b = SDL_GetMouseState(&x, &y);
 
 	/* If mouse is down on the scrollbar for the first time */
-	if (/*boutc==1*/ fsdlg[SGFSDLG_SCROLLBAR].state & SG_MOUSEDOWN) {
+	if (fsdlg[SGFSDLG_SCROLLBAR].state & SG_MOUSEDOWN) {
 		if (mouseClicked == 0) {
 			mouseClicked = 1;
 			mouseIsOut = 0;
 			oldMouseY = y;
-
 		}
 	}
 	/* Mouse button is up on the scrollbar */
@@ -280,9 +269,8 @@ static void DlgFileSelect_ManageScrollbar(void)
 		mouseClicked = 0;
 		oldMouseY = y;
 		mouseIsOut = 0;
-
 	}
-	
+ 	
 	/* If mouse Y position didn't change */ 
 	if (oldMouseY == y)
 		return;
@@ -302,7 +290,6 @@ static void DlgFileSelect_ManageScrollbar(void)
 		oldMouseY = y;
 		return;
 	}
-
 	if (mouseIsOut == SCROLLOUT_ABOVE && y < scrollH_half) {
 		oldMouseY = y;
 		return;
@@ -314,7 +301,6 @@ static void DlgFileSelect_ManageScrollbar(void)
 		oldMouseY = y;
 		return;
 	}
-
 	if (mouseIsOut == SCROLLOUT_UNDER && y > scrollH_half) {
 		oldMouseY = y;
 		return;
@@ -339,15 +325,16 @@ static void DlgFileSelect_ManageScrollbar(void)
 	refreshentries = true;			
 }
 
-
 /*-----------------------------------------------------------------------*/
 /**
  * Handle SDL events.
  */
-static void DlgFileSelect_HandleSdlEvents(int/*SDL_Event*/ *pEvent){
-
-/*
+static void DlgFileSelect_HandleSdlEvents(int/*SDL_Event*/ *pEvent)
+{
 	int oldypos = ypos;
+
+//RETRO TODO FIX
+#if 0
 	switch (pEvent->type)
 	{
 	 case SDL_MOUSEBUTTONDOWN:
@@ -391,15 +378,14 @@ static void DlgFileSelect_HandleSdlEvents(int/*SDL_Event*/ *pEvent){
 	default:
 		break;
 	}
-*/
+#endif
 	if (ypos < 0) {
 		ypos = 0;
 		scrollbar_Ypos = 0.0;
 	}
 	
-	//if (ypos != oldypos)
-	//	refreshentries = true;
-
+	if (ypos != oldypos)
+		refreshentries = true;
 }
 
 
@@ -480,6 +466,8 @@ static void DlgFileSelect_Convert_ypos_to_scrollbar_Ypos(void)
 		scrollbar_Ypos = (float)ypos / ((float)entries/(float)(SGFS_NUMENTRIES-2));
 }
 
+//RETRO 
+extern int okold;
 
 /*-----------------------------------------------------------------------*/
 /**
@@ -489,29 +477,33 @@ static void DlgFileSelect_Convert_ypos_to_scrollbar_Ypos(void)
  * within a selected zip file, or NULL if browsing zip files is disallowed.
  * bAllowNew: true if the user is allowed to insert new file names.
  */
-extern int okold;
-
 char* SDLGui_FileSelect(const char *path_and_name, char **zip_path, bool bAllowNew)
 {
 	struct dirent **files = NULL;
 	char *pStringMem;
-	char *retpath;
+	char *retpath = NULL;
 	const char *home;
 	char *path, *fname;                 /* The actual file and path names */
 	bool reloaddir = true;              /* Do we have to reload the directory file list? */
 	int retbut;
-	int oldcursorstate;
+	bool bOldMouseVisibility;
 	int selection;                      /* The selection index */
 	char *zipfilename;                  /* Filename in zip file */
 	char *zipdir;
 	bool browsingzip = false;           /* Are we browsing an archive? */
 	zip_dir *zipfiles = NULL;
-//	SDL_Event
-	int sdlEvent;
-	int yScrolbar_size;				/* Size of the vertical scrollbar */
+	int /*SDL_Event*/ sdlEvent;
+	int yScrollbar_size;                 /* Size of the vertical scrollbar */
 
-	ypos = 0;
-	scrollbar_Ypos = 0.0;
+	/* If this is the first call to SDLGui_FileSelect, we reset scrollbar_Ypos and ypos */
+	/* Else, we keep the previous value of scrollbar_Ypos and update ypos below, to open */
+	/* the fileselector at the same position it was used */
+	if ( ypos < 0 )
+	{
+		scrollbar_Ypos = 0.0;
+		ypos = 0;
+	}
+
 	refreshentries = true;
 	entries = 0;
 
@@ -524,8 +516,11 @@ char* SDLGui_FileSelect(const char *path_and_name, char **zip_path, bool bAllowN
 	zipfilename[0] = 0;
 	fname[0] = 0;
 	path[0] = 0;
-
-
+#if 0
+	/* Save mouse state and enable cursor */
+	bOldMouseVisibility = SDL_ShowCursor(SDL_QUERY);
+	SDL_ShowCursor(SDL_ENABLE);
+#endif
 	SDLGui_CenterDlg(fsdlg);
 	if (bAllowNew)
 	{
@@ -550,26 +545,19 @@ char* SDLGui_FileSelect(const char *path_and_name, char **zip_path, bool bAllowN
 		if (!(File_DirExists(path) || getcwd(path, FILENAME_MAX)))
 		{
 			perror("SDLGui_FileSelect: non-existing path and CWD failed");
-			free(pStringMem);
-			return NULL;
+			goto clean_exit;
 		}
 	}
-
 
 	File_MakeAbsoluteName(path);
 	File_MakeValidPathName(path);
 	File_ShrinkName(dlgpath, path, DLGPATH_SIZE);
 	File_ShrinkName(dlgfname, fname, DLGFNAME_SIZE);
 
-	/* Save old mouse cursor state and enable cursor */
-/*	oldcursorstate = SDL_ShowCursor(SDL_QUERY);
-	if (oldcursorstate == SDL_DISABLE)
-		SDL_ShowCursor(SDL_ENABLE);
-*/
-okold=0;
+	okold=0;
 
 	do
-	{                
+	{
 		if (reloaddir)
 		{
 			files = files_free(files);
@@ -580,14 +568,11 @@ okold=0;
 				if(!files)
 				{
 					fprintf(stderr, "SDLGui_FileSelect: ZIP_GetFilesDir error!\n");
-					free(pStringMem);
-
-					return NULL;
+					goto clean_exit;
 				}
 			}
 			else
 			{
-//return NULL;
 				/* Load directory entries: */
 				entries = scandir(path, &files, 0, alphasort2);
 			}
@@ -601,9 +586,7 @@ okold=0;
 			if (entries < 0)
 			{
 				fprintf(stderr, "SDLGui_FileSelect: Path not found.\n");
-				free(pStringMem);
-
-				return NULL;
+				goto clean_exit;
 			}
 
 			/* reload always implies refresh */
@@ -613,23 +596,32 @@ okold=0;
 
 		/* Refresh scrollbar size */
  		if (entries <= SGFS_NUMENTRIES)
-			yScrolbar_size = (SGFS_NUMENTRIES-2) * sdlgui_fontheight;
+			yScrollbar_size = (SGFS_NUMENTRIES-2) * sdlgui_fontheight;
 		else
-			yScrolbar_size = (int)((SGFS_NUMENTRIES-2) / ((float)entries/(float)SGFS_NUMENTRIES) * sdlgui_fontheight);
-		fsdlg[SGFSDLG_SCROLLBAR].w = yScrolbar_size;
-		
+		{
+			yScrollbar_size = (int)((SGFS_NUMENTRIES-2) / ((float)entries/(float)SGFS_NUMENTRIES) * sdlgui_fontheight);
+			if ( yScrollbar_size < SCROLLBAR_MIN_HEIGHT )		/* Value could be 0 for very large directory */
+				yScrollbar_size = SCROLLBAR_MIN_HEIGHT;
+		}
+		fsdlg[SGFSDLG_SCROLLBAR].w = yScrollbar_size;
+
 		/* Refresh scrolbar pos */
-		fsdlg[SGFSDLG_SCROLLBAR].h = (int) (scrollbar_Ypos * sdlgui_fontheight);
 		ypos = (int) (scrollbar_Ypos * ((float)entries/(float)(SGFS_NUMENTRIES-2)) + 0.5);
-		
+
+		if (ypos+SGFS_NUMENTRIES >= entries) {			/* Ensure Y pos is in the correct boundaries */
+			ypos = entries - SGFS_NUMENTRIES;
+			if ( ypos < 0 )
+				ypos = 0;
+			DlgFileSelect_Convert_ypos_to_scrollbar_Ypos();
+		}
+		fsdlg[SGFSDLG_SCROLLBAR].h = (int) (scrollbar_Ypos * sdlgui_fontheight);
+
 		/* Update the file name strings in the dialog? */
 		if (refreshentries)
 		{
 			if (!DlgFileSelect_RefreshEntries(files, path, browsingzip))
 			{
-				free(pStringMem);
-
-				return NULL;
+				goto clean_exit;
 			}
 			refreshentries = false;
 		}
@@ -646,9 +638,7 @@ okold=0;
 			if (!tempstr)
 			{
 				perror("Error while allocating temporary memory in SDLGui_FileSelect()");
-				free(pStringMem);
-
-				return NULL;
+				goto clean_exit;
 			}
 
 			if (browsingzip == true)
@@ -657,9 +647,7 @@ okold=0;
 						   zipdir, files[retbut-SGFSDLG_ENTRYFIRST+ypos]->d_name))
 				{
 					fprintf(stderr, "SDLGui_FileSelect: Path name too long!\n");
-					free(pStringMem);
-
-					return NULL;
+					goto clean_exit;
 				}
 				/* directory? */
 				if (File_DoesFileNameEndWithSlash(tempstr))
@@ -713,9 +701,7 @@ okold=0;
 						   path, files[retbut-SGFSDLG_ENTRYFIRST+ypos]->d_name))
 				{
 					fprintf(stderr, "SDLGui_FileSelect: Path name too long!\n");
-					free(pStringMem);
-
-					return NULL;
+					goto clean_exit;
 				}
 				if (File_DirExists(tempstr))
 				{
@@ -793,7 +779,11 @@ okold=0;
 				break;
 
 			case SGFSDLG_HOMEDIR:               /* Change to home directory */
-				home = Paths_GetUserHome();
+			case SGFSDLG_CWD:                   /* Change to current work directory */
+				if (retbut == SGFSDLG_CWD)
+					home = Paths_GetWorkingDir();
+				else
+					home = Paths_GetUserHome();
 				if (home == NULL || !*home)
 					break;
 				if (browsingzip)
@@ -861,9 +851,6 @@ okold=0;
 	while (retbut!=SGFSDLG_OKAY && retbut!=SGFSDLG_CANCEL
 	       && retbut!=SDLGUI_QUIT && retbut != SDLGUI_ERROR && !bQuitProgram);
 
-	//if (oldcursorstate == SDL_DISABLE)
-	//	SDL_ShowCursor(SDL_DISABLE);
-
 	files_free(files);
 
 	if (browsingzip)
@@ -881,6 +868,8 @@ okold=0;
 	}
 	else
 		retpath = NULL;
+clean_exit:
+//	SDL_ShowCursor(bOldMouseVisibility);
 	free(pStringMem);
 	return retpath;
 }
@@ -894,7 +883,7 @@ okold=0;
  * If no file is selected, or there's some problem with the file,
  * return false and clear dlgname & confname.
  * Otherwise return true, set dlgname & confname to the new file name
- * (dlgname is shrinked & limited to maxlen and confname is assumed
+ * (dlgname is shrunken & limited to maxlen and confname is assumed
  * to have FILENAME_MAX amount of space).
  */
 bool SDLGui_FileConfSelect(char *dlgname, char *confname, int maxlen, bool bAllowNew)

@@ -318,6 +318,7 @@ static void SDLGui_DrawPopupButton(const SGOBJ *pdlg, int objnum)
 	SDLGui_Text(x+w-sdlgui_fontwidth, y, downstr);
 }
 
+//TODO FIX THIS
 #if 0
 /*-----------------------------------------------------------------------*/
 /**
@@ -553,8 +554,7 @@ static int SDLGui_SearchFlaggedButton(const SGOBJ *dlg, int flag)
 
 extern int touch;
 int gmx=(retrow/2 )-1,gmy=(retroh/2)-1;
-int dbgobj=0,dbgoldobj=0,boutc=0;
-int okold=0;
+int okold=0,boutc=0;
 
 /*-----------------------------------------------------------------------*/
 /**
@@ -663,7 +663,7 @@ okold=1;
 						SDLGui_DrawButton(dlg, obj);
 						
 
-						oldbutton=obj;dbgoldobj=obj;
+						oldbutton=obj;//dbgoldobj=obj;
 					}
                                         if (dlg[obj].type==SGSCROLLBAR)
 					{
@@ -744,7 +744,7 @@ okold=1;
 				{	
 					dlg[oldbutton].state &= ~SG_SELECTED;
 					SDLGui_DrawButton(dlg, oldbutton);
-					oldbutton = 0;dbgoldobj=0;
+					oldbutton = 0;//dbgoldobj=0;
 				}
 				if (obj >= 0 && (dlg[obj].flags&SG_EXIT))
 				{

@@ -1,0 +1,43 @@
+HATARI 1.7.0 libretro
+
+Quick Install :
+
+I) To build , you have to go to the build/ directory 
+export somes variables to setup your SDK 
+and type make "platform=XXX".
+
+Ex for android :
+
+> cd build
+> export PATH=/opt/somewhere/andtoolchains/arm-linux-androideabi-4.4.3/bin:$PATH
+> make "platform=android" 
+
+
+II) To install , you have to put manually the lib in the retroarch system directory.
+
+Ex for android :
+
+> adb push libretro-hatari.so /mnt/sdcard/
+> adb shell
+  >> su
+  >># cp /mnt/sdcard/libretro-hatari.so /data/data/org.retroarch/lib/
+
+III) To configure , you have to :
+
+1)  put a tos file ( rename it to "rom" , you can change it after in GUI or in hatari.cfg ) 
+     in the HATARI CONFDIR directory ( specific to platform ) 
+
+2 ) edit a file named hatari.cfg (see exemple file in cfg/ directory)
+    to match your rompath,tospath,hdpath...
+    and put it in the HATARI CONFDIR directory . 
+
+The HATARI CONFDIR is specific to platform and is for now hardcoded to :
+
+- /mnt/sdcard/ for android 
+- /dev_hdd0/HOMEBREW/ST for ps3
+- sd:/HOMEBREW/ST for wii
+- current path ./ for linux & win platform.
+
+
+
+

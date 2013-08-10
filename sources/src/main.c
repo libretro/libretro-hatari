@@ -60,6 +60,8 @@ const char Main_fileid[] = "Hatari main.c : " __DATE__ " " __TIME__;
 //DEB RETRO HACK
 #ifdef RETRO
 
+extern int romnotfoundatstart;	
+
 #ifdef PS3PORT
 #undef HAVE_GETTIMEOFDAY
 #undef HAVE_NANOSLEEP
@@ -320,6 +322,7 @@ void Main_SetRunVBLs(Uint32 vbls)
  * to "busy wait" there to get an accurate timing.
  * All times are expressed as micro seconds, to avoid too much rounding error.
  */
+
 void Main_WaitOnVbl(void)
 {
 	Sint64 CurrentTicks;
@@ -329,8 +332,9 @@ void Main_WaitOnVbl(void)
 
 #ifdef RETRO
 	RLOOP=0;
-	if(pauseg==1)
+	if(pauseg==1){
 		return;
+	}
 #endif
 
 	nVBLCount++;
@@ -639,6 +643,8 @@ void Main_SetTitle(const char *title)
 #endif
 }
 
+
+
 /*-----------------------------------------------------------------------*/
 /**
  * Initialise emulation
@@ -703,12 +709,13 @@ static void Main_Init(void)
 		/* If loading of the TOS failed, we bring up the GUI to let the
 		 * user choose another TOS ROM file. */
 #ifdef RETRO
+		//stop here if tos not found and then give a change to choose it from gui
 		pauseg=1;
+		romnotfoundatstart=1;
+		return;
 #endif
 		Dialog_DoProperty();
-#ifdef RETRO
-		pauseg=0;
-#endif
+
 	}
 	if (!bTosImageLoaded || bQuitProgram)
 	{
@@ -717,10 +724,7 @@ static void Main_Init(void)
 		SDL_Quit();
 #endif
 #ifdef RETRO
-		pauseg=-1;
-
-		return;
-//TO FIX
+		retro_shutdown_hatari();
 #endif	
 		exit(-2);
 	}
@@ -928,6 +932,21 @@ int main(int argc, char *argv[])
 
 
 #ifdef RETRO
+void retro_romnotfound(){
+    Log_AlertDlg(LOG_FATAL, "Can not load TOS file:\n'%s'", ConfigureParams.Rom.szTosImageFileName);
+}
+
+void retro_restartinitprocess(){
+	//restart init after a rom not found a start
+	IoMem_Init();
+	NvRam_Init();
+	Joy_Init();
+	Sound_Init();
+	
+	/* done as last, needs CPU & DSP running... */
+	DebugUI_Init();
+}
+
 void RETRO_END(){
 
 	if (bRecordingAvi)

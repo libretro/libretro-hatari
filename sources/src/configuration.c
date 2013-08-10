@@ -383,6 +383,9 @@ void Configuration_SetDefault(void)
 #elif defined(WIIPORT)
 	strcpy( psWorkingDir,"sd:/HOMEBREW/ST");
  	strcpy( psHomeDir,"sd:/HOMEBREW/ST");
+#elif defined(AND)
+	strcpy( psWorkingDir,"/mnt/sdcard");
+ 	strcpy( psHomeDir,"/mnt/sdcard");
 #else
  	strcpy( psWorkingDir,".");
  	strcpy( psHomeDir,".");

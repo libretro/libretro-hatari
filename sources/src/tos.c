@@ -572,7 +572,10 @@ int TOS_LoadImage(void)
 
 	if (!pTosFile || nFileSize <= 0)
 	{
+#ifndef RETRO
+//at this time in init process, retro can't load gui ;( 
 		Log_AlertDlg(LOG_FATAL, "Can not load TOS file:\n'%s'", ConfigureParams.Rom.szTosImageFileName);
+#endif
 		return -1;
 	}
 

@@ -4,6 +4,8 @@
 
 #include "STkeymap.h"
 
+int romnotfoundatstart=0;	
+
 extern unsigned short int bmp[TEX_WIDTH * TEX_HEIGHT];
 extern int STATUTON,SHOWKEY,SHIFTON,RLOOP,pauseg,SND ,snd_sampler;
 extern short signed int SNDBUF[1024*2];
@@ -89,6 +91,14 @@ void retro_shutdown_hatari(void)
 void retro_run(void)
 {
    	int x;
+
+	if(romnotfoundatstart==1){
+								
+		romnotfoundatstart=0;
+		retro_romnotfound();
+		pause_select();
+		retro_restartinitprocess();
+	}
 
    	if(pauseg==0){
 

@@ -1,5 +1,20 @@
 HATARI 1.7.0 libretro
 
+
+Default Control :
+
+L2  Show/Hide statut            (show: JOY/MOUSE MODE | SHIFTON | MOUSE SPEED | NUM JOY | LED ACTIVITY )
+R2  Swap kbd pages              (virtual keyboard : toggle Page 1 / 2 ) 
+L   Show/Hide vkbd              (show or hide virtual keyboard )
+R   Change Mouse speed 1 to 6   (set mouse mode speed : for gui and emu)
+SEL Toggle mouse/joy mode       (switch to joymode or mouse mode)
+STR Toggle num joy              (switch to joy 0 or joy1 )
+A   Fire / Mouse btnA / Valid key in vkbd 
+B   Mouse btn B  
+X   Switch Shift ON/OFF         (toggle Shift ON or OFF )
+Y   Hatari Gui                  (bring hatari GUI)
+
+
 Quick Install :
 
 I) To build , you have to go to the build/ directory 
@@ -24,20 +39,119 @@ Ex for android :
 
 III) To configure , you have to :
 
-1)  put a tos file ( rename it to "rom" , you can change it after in GUI or in hatari.cfg ) 
-     in the HATARI CONFDIR directory ( specific to platform ) 
+    edit a file named hatari.cfg (see exemple file in cfg/ directory)
+    to match your rompath,tospath,hdpath,logpath ...
+    and put it in the HATARI CONFDIR directory. 
 
-2 ) edit a file named hatari.cfg (see exemple file in cfg/ directory)
-    to match your rompath,tospath,hdpath...
-    and put it in the HATARI CONFDIR directory . 
+    If you don't put an hatari.cfg in CONFDIR (and then choose the hardway) , 
+    an alert will tell you that rom is not found
+    and bring you to GUI ( you have then to go to ROM and choose a valid tos file)
 
-The HATARI CONFDIR is specific to platform and is for now hardcoded to :
+    TIPS: in GUI if you have no mouse , you have to push SELECT to toggle to mouse mode.
 
-- /mnt/sdcard/ for android 
+The HATARI CONFDIR is specific to platform and is for now hardcoded (in main.c) to :
+
+- /mnt/sdcard/st for android 
 - /dev_hdd0/HOMEBREW/ST for ps3
 - sd:/HOMEBREW/ST for wii
 - current path ./ for linux & win platform.
 
+here an Ex of cfg file : hatari.cfg for android 
 
+[Floppy]
+bAutoInsertDiskB = TRUE
+FastFloppy = TRUE
+nWriteProtection = 0
+szDiskAFileName =
+szDiskBFileName =
+szDiskImageDirectory = /mnt/sdcard/st
+szDiskAZipPath =
+szDiskBZipPath =
 
+[HardDisk]
+bBootFromHardDisk = FALSE
+bUseHardDiskDirectory = FALSE
+szHardDiskDirectory = /mnt/sdcard/st/hdisk
+bUseHardDiskImage = FALSE
+szHardDiskImage = /mnt/sdcard/st/hdisk
+bUseIdeHardDiskImage = FALSE
+szIdeHardDiskImage = /mnt/sdcard/st/hdisk
+
+[Memory]
+bAutoSave = FALSE
+nMemorySize = 1
+szAutoSaveFileName = /mnt/sdcard/st/auto.sav
+szMemoryCaptureFileName = /mnt/sdcard/st/hatari.sav
+
+[Midi]
+bEnableMidi = FALSE
+sMidiInFileName = /dev/snd/midiC1D0
+sMidiOutFileName = /dev/snd/midiC1D0
+
+[Printer]
+bEnablePrinting = FALSE
+bPrintToFile = TRUE
+szPrintToFileName = /mnt/sdcard/st/hatari-printer.txt
+
+[ROM]
+szCartridgeImageFileName =
+szTosImageFileName = /mnt/sdcard/st/tos/tos100fr.img
+
+[RS232]
+bEnableRS232 = FALSE
+szOutFileName = /dev/modem
+szInFileName = /dev/modem
+
+[Screen]
+bAllowOverscan = FALSE
+bFullScreen = TRUE
+bUseExtVdiResolutions = FALSE
+nForceBpp = 16
+nSpec512Threshold = 16
+nFrameSkips = 0
+nMonitorType = 1
+nVdiColors = 0
+nVdiWidth = 640
+nVdiHeight = 480
+bShowStatusbar = FALSE
+bShowDriveLed = FALSE
+bAspectCorrect = TRUE
+nMaxWidth = 640
+nMaxHeight = 480
+nWindowBorderPixelsTop = 0
+nWindowBorderPixelsLeft = 48
+nWindowBorderPixelsRight = 48
+nWindowBorderPixelsBottom = 40
+nFullScreenBorderPixelsTop = 0
+nFullScreenBorderPixelsLeft = 32
+nFullScreenBorderPixelsRight = 32
+nFullScreenBorderPixelsBottom = 40
+
+[Sound]
+bEnableSound = TRUE
+szYMCaptureFileName = /mnt/sdcard/st/hatari.wav
+nPlaybackFreq = 44100
+
+[System]
+bBlitter = FALSE
+bCompatibleCpu = TRUE
+bFastForward = FALSE
+bPatchTimerD = TRUE
+bRealTimeClock = TRUE
+nCpuFreq = 8
+nCpuLevel = 0
+nDSPType = 0
+nMachineType = 0
+
+[Log]
+sLogFileName = /mnt/sdcard/st/1log.txt
+sTraceFileName = /mnt/sdcard/st/1trace.txt
+nTextLogLevel = 1
+nAlertDlgLogLevel = 1
+bConfirmQuit = FALSE
+
+[Debugger]
+nNumberBase = 10
+nDisasmLines = 8
+nMemdumpLines = 8
 

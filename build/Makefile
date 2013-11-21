@@ -62,8 +62,8 @@ else ifeq ($(platform), ps3)
 	-D__CELLOS_LV2 -DPS3PORT=1 -DHAVE_MEMALIGN -DHAVE_ASPRINTF -I$(ZLIB_DIR) 
    PLATFLAGS :=  -DRETRO -DALIGN_DWORD 
 else
-   CC = i586-mingw32msvc-gcc
-   #CC = x86_64-w64-mingw32-gcc
+   #CC = i586-mingw32msvc-gcc
+   CC = x86_64-w64-mingw32-gcc
    PLATFLAGS :=  -DRETRO -DLSB_FIRST -DALIGN_DWORD -DWIN32PORT -DWIN32
    TARGET := retro-hatari.dll
    SHARED := -shared -static-libgcc -s -Wl,--version-script=$(LIBRETRO)/link.T -Wl,--no-undefined 

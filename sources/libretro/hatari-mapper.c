@@ -2,6 +2,8 @@
 
 #include "libretro-hatari.h"
 
+extern const char SDLKeyToSTScanCode[512] ;
+
 #include "graph.h"
 #include "vkbd.h"
 
@@ -35,6 +37,9 @@ int pauseg=0; //enter_gui
 int SND; //SOUND ON/OFF
 int NUMjoy=1;
 
+static char Key_Sate[512];
+static char Key_Sate2[512];
+	
 unsigned char savbkg[TEX_WIDTH * TEX_HEIGHT * 2];
 
 static int mbt[16]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
@@ -104,7 +109,7 @@ void gui_poll_events(){
 	if(Ktime - LastFPSTime >= 1000/50){
 
 		frame++; 
- 	        LastFPSTime = Ktime;		
+ 	    LastFPSTime = Ktime;		
 		
 		retro_run();
  	}
@@ -138,6 +143,8 @@ void Emu_init(){
 
 	char **argv2 = (char *[]){"hatari\0", "\0"};
 	hmain(1,argv2);
+	memset(Key_Sate,0,512);
+	memset(Key_Sate2,0,512);
 
 }
 
@@ -202,6 +209,48 @@ void retro_key_up(unsigned char retrok){
 	IKBD_PressSTKey(retrok,0);
 }
 
+void Process_key(){
+	
+	int i;
+	for(i=0;i<320;i++){
+	
+		Key_Sate[i]=input_state_cb(0, RETRO_DEVICE_KEYBOARD, 0,i)?0x80:0;
+		
+		if(SDLKeyToSTScanCode[i]==0x2a ){  //SHIFT CASE
+		
+			if( Key_Sate[i] && Key_Sate2[i]==0 ){
+			
+				if(SHIFTON == 1)
+					retro_key_up(	SDLKeyToSTScanCode[i] );					
+				else if(SHIFTON == -1) 
+					retro_key_down(SDLKeyToSTScanCode[i] );
+							
+				SHIFTON=-SHIFTON;
+				
+				Key_Sate2[i]=1;
+				 
+			}
+			else if ( !Key_Sate[i] && Key_Sate2[i]==1 )Key_Sate2[i]=0;
+			
+		}
+		else {
+		
+			if(Key_Sate[i] && SDLKeyToSTScanCode[i]!=-1  && Key_Sate2[i]==0){
+				retro_key_down(	SDLKeyToSTScanCode[i] );		
+				Key_Sate2[i]=1;
+			}
+			else if ( !Key_Sate[i] && SDLKeyToSTScanCode[i]!=-1 && Key_Sate2[i]==1 ) {
+				retro_key_up( SDLKeyToSTScanCode[i] );
+				Key_Sate2[i]=0;
+		
+			}
+			
+		}
+	}
+
+}
+
+
 /*
 L2  show/hide Statut
 R2  swap kbd pages
@@ -229,7 +278,9 @@ void update_input(void)
 
    	input_poll_cb();
 
-        if (input_state_cb(0, RETRO_DEVICE_KEYBOARD, 0, RETROK_F11) || input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_Y) ){
+	Process_key();
+	
+    if (Key_Sate[RETROK_F11]/*input_state_cb(0, RETRO_DEVICE_KEYBOARD, 0, RETROK_F11)*/ || input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_Y) ){
 		pauseg=1;
 		pause_select();
 	}

@@ -127,6 +127,7 @@ void retro_run(void)
 
 static void keyboard_cb(bool down, unsigned keycode, uint32_t character, uint16_t mod)
 {
+#if 0
 	char retrok=SDLKeyToSTScanCode[keycode];
 
   	// printf( "Down: %s, Code: %d, Char: %u, Mod: %u. ,(%d)\n",
@@ -150,6 +151,7 @@ static void keyboard_cb(bool down, unsigned keycode, uint32_t character, uint16_
 		}	
 
 	}
+#endif
 
 }
 

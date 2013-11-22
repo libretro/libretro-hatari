@@ -292,10 +292,7 @@ void Main_RequestQuit(void)
 		/* Assure that CPU core shuts down */
 		M68000_SetSpecial(SPCFLAG_BRK);
 #ifdef RETRO
-
-pauseg=-1;
-retro_shutdown_hatari();
-
+		pauseg=-1;
 #endif
 	}
 }
@@ -323,6 +320,12 @@ void Main_SetRunVBLs(Uint32 vbls)
  * All times are expressed as micro seconds, to avoid too much rounding error.
  */
 
+#ifdef RETRO
+#include "libco/libco.h"
+extern cothread_t mainThread;
+extern cothread_t emuThread;
+#endif
+
 void Main_WaitOnVbl(void)
 {
 	Sint64 CurrentTicks;
@@ -331,12 +334,8 @@ void Main_WaitOnVbl(void)
 	Sint64 nDelay;
 
 #ifdef RETRO
-	RLOOP=0;
-	if(pauseg==1){
-		return;
-	}
+	co_switch(mainThread);
 #endif
-
 	nVBLCount++;
 	if (nRunVBLs &&	nVBLCount >= nRunVBLs)
 	{
@@ -709,12 +708,11 @@ static void Main_Init(void)
 		/* If loading of the TOS failed, we bring up the GUI to let the
 		 * user choose another TOS ROM file. */
 #ifdef RETRO
-		//stop here if tos not found and then give a change to choose it from gui
 		pauseg=1;
-		romnotfoundatstart=1;
-		return;
-#endif
+		pause_select();
+#else
 		Dialog_DoProperty();
+#endif
 
 	}
 	if (!bTosImageLoaded || bQuitProgram)
@@ -733,7 +731,7 @@ static void Main_Init(void)
 	NvRam_Init();
 	Joy_Init();
 	Sound_Init();
-	
+
 	/* done as last, needs CPU & DSP running... */
 	DebugUI_Init();
 }
@@ -912,11 +910,8 @@ int main(int argc, char *argv[])
 
 	/* Run emulation */
 	Main_UnPauseEmulation();
-#ifdef RETRO
-	return 0;
-#else
 	M68000_Start();                 /* Start emulation */
-#endif
+
 	if (bRecordingAvi)
 	{
 		/* cleanly close the avi file */
@@ -926,40 +921,9 @@ int main(int argc, char *argv[])
 	}
 	/* Un-init emulation system */
 	Main_UnInit();
-
+#ifdef RETRO
+pauseg=-1;
+#endif
 	return 0;
 }
 
-
-#ifdef RETRO
-void retro_romnotfound(){
-    Log_AlertDlg(LOG_FATAL, "Can not load TOS file:\n'%s'", ConfigureParams.Rom.szTosImageFileName);
-}
-
-void retro_restartinitprocess(){
-	//restart init after a rom not found a start
-	IoMem_Init();
-	NvRam_Init();
-	Joy_Init();
-	Sound_Init();
-	
-	/* done as last, needs CPU & DSP running... */
-	DebugUI_Init();
-}
-
-void RETRO_END(){
-
-	if (bRecordingAvi)
-	{
-		/* cleanly close the avi file */
-		Statusbar_AddMessage("Finishing AVI file...", 100);
-
-		Avi_StopRecording();
-	}
-	/* Un-init emulation system */
-	Main_UnInit();
-
-	pauseg=-1;
-
-}
-#endif

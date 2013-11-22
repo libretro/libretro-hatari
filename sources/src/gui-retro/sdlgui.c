@@ -70,7 +70,7 @@ int SDLGui_SetScreen(/*SDL_Surface *pScrn*/)
 {
 	memset(bmp, 0, sizeof(bmp));
 
-	sdlgui_fontwidth  = 10;//8;//8;//10;
+	sdlgui_fontwidth  = 10;//8;
 	sdlgui_fontheight = 16;//2*8;
 	return 0;
 }

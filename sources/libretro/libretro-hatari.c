@@ -4,6 +4,9 @@
 
 #include "STkeymap.h"
 
+cothread_t mainThread;
+cothread_t emuThread;
+
 int romnotfoundatstart=0;	
 
 extern unsigned short int bmp[TEX_WIDTH * TEX_HEIGHT];
@@ -21,14 +24,67 @@ static retro_audio_sample_t audio_cb;
 static retro_audio_sample_batch_t audio_batch_cb;
 static retro_environment_t environ_cb;
 
+static void retro_wrap_emulator()
+{    
+    char **argv2 = (char *[]){"hatari\0", "\0"};
+    hmain(1,argv2);
+
+    pauseg=-1;
+
+    environ_cb(RETRO_ENVIRONMENT_SHUTDOWN, 0); 
+
+    // Were done here
+    co_switch(mainThread);
+        
+    // Dead emulator, but libco says not to return
+    while(true)
+    {
+        LOGI("Running a dead emulator.");
+        co_switch(mainThread);
+    }
+}
+
+void Emu_init(){
+
+	memset(Key_Sate,0,512);
+	memset(Key_Sate2,0,512);
+
+	if(!emuThread && !mainThread)
+    	{
+        	mainThread = co_active();
+        	emuThread = co_create(65536*sizeof(void*), retro_wrap_emulator);
+    	}
+
+}
+
+void Emu_uninit(){
+	
+}
+
 void retro_init(void)
-{
-	texture_init();	
+{    	
+	enum retro_pixel_format fmt = RETRO_PIXEL_FORMAT_RGB565;
+    	if (!environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &fmt))
+    	{
+    		fprintf(stderr, "RGB565 is not supported.\n");
+    		exit(0);//return false;
+    	}
+
+	texture_init();
+	Emu_init();
 }
 
 void retro_deinit(void)
 {	 
-	 Emu_uninit();
+	Emu_uninit(); 
+
+   	if(emuThread)
+   	{	 
+      		co_delete(emuThread);
+      		emuThread = 0;
+   	}
+
+   	LOGI("Retro DeInit\n");
 }
 
 unsigned retro_api_version(void)
@@ -85,24 +141,14 @@ void retro_reset(void){}
 
 void retro_shutdown_hatari(void)
 {
-   environ_cb(RETRO_ENVIRONMENT_SHUTDOWN, NULL);
+   	environ_cb(RETRO_ENVIRONMENT_SHUTDOWN, NULL);
 }
 
 void retro_run(void)
 {
    	int x;
 
-	if(romnotfoundatstart==1){
-								
-		romnotfoundatstart=0;
-		retro_romnotfound();
-		pause_select();
-		retro_restartinitprocess();
-	}
-
    	if(pauseg==0){
-
-		RetroLoop();
 
 	   	update_input();
 		
@@ -122,52 +168,14 @@ void retro_run(void)
 
    	}   	
 	else  	video_cb(bmp,TEX_WIDTH, TEX_HEIGHT, TEX_WIDTH << 1);
+
+	co_switch(emuThread);
    	
-}
-
-static void keyboard_cb(bool down, unsigned keycode, uint32_t character, uint16_t mod)
-{
-#if 0
-	char retrok=SDLKeyToSTScanCode[keycode];
-
-  	// printf( "Down: %s, Code: %d, Char: %u, Mod: %u. ,(%d)\n",
-  	//       down ? "yes" : "no", keycode, character, mod,cpck);
-
-	if (keycode>=320);
-	else{
-	
-		if(down && retrok==0x2a){
-										
-			if(SHIFTON == 1)retro_key_up(retrok);
-			else retro_key_down(retrok);
-			SHIFTON=-SHIFTON;							
-			
-		}
-		else {
-			if(down && retrok!=-1)		
-				retro_key_down(retrok);	
-			else if(!down && retrok!=-1)
-				retro_key_up(retrok);
-		}	
-
-	}
-#endif
-
 }
 
 bool retro_load_game(const struct retro_game_info *info)
 {
     	const char *full_path;
-
-    	enum retro_pixel_format fmt = RETRO_PIXEL_FORMAT_RGB565;
-    	if (!environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &fmt))
-    	{
-    		fprintf(stderr, "RGB565 is not supported.\n");
-    		return false;
-    	}
-
-    	struct retro_keyboard_callback cb = { keyboard_cb };
-    	environ_cb(RETRO_ENVIRONMENT_SET_KEYBOARD_CALLBACK, &cb);
 
     	(void)info;
 
@@ -175,18 +183,12 @@ bool retro_load_game(const struct retro_game_info *info)
 
     	strcpy(RPATH,full_path);
 
-	RLOOP=1;
-
-	Emu_init();
-	if(pauseg==-1)return false;
-
     	return true;
 }
 
 void retro_unload_game(void){
 
-	//RETRO_END();
-	//pauseg=0;
+	pauseg=0;
 }
 
 unsigned retro_get_region(void)

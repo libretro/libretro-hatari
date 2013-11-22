@@ -1675,9 +1675,6 @@ static int do_specialties (void)
     return 0;
 }
 
-#ifdef RETRO
-extern int RLOOP;
-#endif
 
 /* It's really sad to have two almost identical functions for this, but we
    do it all for performance... :( */
@@ -1770,10 +1767,6 @@ static void m68k_run_1 (void)
 	    DSP_Run( Cycles_GetCounter(CYCLES_COUNTER_CPU) * 2);
 	}
 
-#ifdef RETRO
-if(RLOOP==0)break;
-#endif
-
     }
 }
 
@@ -1839,29 +1832,9 @@ static void m68k_run_2 (void)
 	if (bDspEnabled) {
 	    DSP_Run( Cycles_GetCounter(CYCLES_COUNTER_CPU) );
 	}
-#ifdef RETRO
-if(RLOOP==0)break;
-#endif
 
     }
 }
-
-#ifdef RETRO
-void RetroLoop()
-{
-	while(RLOOP==1){
-
-         if(currprefs.cpu_compatible)
-          m68k_run_1();
-         else
-          m68k_run_2();
-
-	}
-
-	RLOOP=1;
-	// TODO HANDLE SPCFLAG_BRK
-}
-#endif
 
 void m68k_go (int may_quit)
 {

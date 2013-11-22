@@ -15,12 +15,26 @@
 #include "ikbd.h"
 #include "configuration.h"
 
+extern const char SDLKeyToSTScanCode[512] ;
+
+#include "libco/libco.h"
+
+extern cothread_t mainThread;
+extern cothread_t emuThread;
+
+extern char Key_Sate[512];
+extern char Key_Sate2[512];
+
+extern int pauseg; 
+
 typedef struct
 {
 	int w, h;
 	int stride;
     	unsigned char * bitmap;
 } SDL_Surface;
+
+#define LOGI printf
 
 #include "retroscreen.h"
 

@@ -2,8 +2,6 @@
 
 #include "libretro-hatari.h"
 
-extern const char SDLKeyToSTScanCode[512] ;
-
 #include "graph.h"
 #include "vkbd.h"
 
@@ -37,8 +35,8 @@ int pauseg=0; //enter_gui
 int SND; //SOUND ON/OFF
 int NUMjoy=1;
 
-static char Key_Sate[512];
-static char Key_Sate2[512];
+char Key_Sate[512];
+char Key_Sate2[512];
 	
 unsigned char savbkg[TEX_WIDTH * TEX_HEIGHT * 2];
 
@@ -107,10 +105,9 @@ void gui_poll_events(){
 	Ktime = GetTicks();
 
 	if(Ktime - LastFPSTime >= 1000/50){
-
 		frame++; 
- 	    LastFPSTime = Ktime;		
-		
+ 	    	LastFPSTime = Ktime;		
+		//co_switch(mainThread);
 		retro_run();
  	}
 }
@@ -137,19 +134,6 @@ void texture_init(){
 	sdlscrn.h=TEX_HEIGHT;
 	sdlscrn.bitmap=(unsigned char *)&bmp[0];
 	sdlscrn.stride=TEX_WIDTH*2;
-}
-
-void Emu_init(){
-
-	char **argv2 = (char *[]){"hatari\0", "\0"};
-	hmain(1,argv2);
-	memset(Key_Sate,0,512);
-	memset(Key_Sate2,0,512);
-
-}
-
-void Emu_uninit(){
-	RETRO_END();
 }
 
 void pause_select(){
@@ -191,7 +175,7 @@ void Print_Statut(){
 		DrawFBoxBmp(bmp,CROP_WIDTH-7*BOXDEC-6-16,CROP_HEIGHT-0,16,16,RGB565(0,7,0));//led B drive
 		textpixel  (bmp,CROP_WIDTH-7*BOXDEC-6-16,CROP_HEIGHT-0,0,1,1,4," B");
 	}
-	if( LEDC){
+	if(LEDC){
 		DrawFBoxBmp(bmp,CROP_WIDTH-8*BOXDEC-6-16,CROP_HEIGHT-0,16,16,RGB565(0,7,0));//led C drive
 		textpixel  (bmp,CROP_WIDTH-8*BOXDEC-6-16,CROP_HEIGHT-0,0,1,1,4," C");
 		LEDC=0;
@@ -280,7 +264,7 @@ void update_input(void)
 
 	Process_key();
 	
-    if (Key_Sate[RETROK_F11]/*input_state_cb(0, RETRO_DEVICE_KEYBOARD, 0, RETROK_F11)*/ || input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_Y) ){
+    	if (Key_Sate[RETROK_F11] || input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_Y) ){
 		pauseg=1;
 		pause_select();
 	}

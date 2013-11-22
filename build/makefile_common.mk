@@ -5,6 +5,8 @@ DBG = $(EMU)/debug
 FLP = $(EMU)
 GUI = $(EMU)/gui-retro
 ALTEMU = ../sources/altsrc
+LIBCOOBJ = ../sources/utils/libco
+LIBUTILS =../sources/utils
 
 CPUC_SRCS = \
 $(CPU)/cpudefs.o \
@@ -132,10 +134,16 @@ $(EMU)/xbios.o \
 $(EMU)/ymFormat.o \
 $(ALTEMU)/bmp.o
 
-BUILD_APP =  $(ZLIB_OBJECTS) $(CPUC_SRCS) $(FALC_SRCS)  $(FLP_SRCS) $(DBG_SRCS)  $(CORE_SRCS) $(DLG_SRCS)
+LIBCO_SRCS = $(LIBCOOBJ)/libco.o 
+ifeq ($(platform),android)
+LIBCO_SRCS += $(LIBCOOBJ)/armeabi_asm.o
+endif
+
+BUILD_APP =  $(ZLIB_OBJECTS) $(CPUC_SRCS) $(FALC_SRCS)  $(FLP_SRCS) $(DBG_SRCS)  $(CORE_SRCS) $(DLG_SRCS) $(LIBCO_SRCS)
 
 HINCLUDES := -I./$(EMU)  -I./$(CPU)  -I./$(FALCON)  \
-	-I./$(EMU)/includes -I./$(DBG) -I./$(FLP) -I$(LIBRETRO)
+	-I./$(EMU)/includes -I./$(DBG) -I./$(FLP) -I$(LIBRETRO) -I$(LIBUTILS)
+
 
 OBJECTS := $(LIBRETRO)/libretro-hatari.o $(LIBRETRO)/hatari-mapper.o $(LIBRETRO)/vkbd.o \
 	$(LIBRETRO)/graph.o $(LIBRETRO)/fontmsx.o \

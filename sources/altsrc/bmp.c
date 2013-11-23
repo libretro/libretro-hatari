@@ -71,7 +71,7 @@ static int            write_word(FILE *fp, unsigned short w);
 static int            write_dword(FILE *fp, unsigned int dw);
 static int            write_long(FILE *fp, int l);
 
-extern unsigned char savbkg[640*480*2];
+extern unsigned char savbkg[1024*1024*2];
 
 int SDL_SaveBMP(char *file){
 

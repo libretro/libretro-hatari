@@ -17,7 +17,7 @@ const char SDLGui_fileid[] = "Hatari sdlgui.c : " __DATE__ " " __TIME__;
 #include "screen.h"
 #define TEXTURE_WIDTH retrow
 #define TEXTURE_HEIGHT retroh
-extern unsigned short int bmp[retrow * retroh];
+extern unsigned short int bmp[1024*1024];
 
 #define B ((rgba>> 8)&0xff)>>3 
 #define G ((rgba>>16)&0xff)>>3
@@ -553,7 +553,7 @@ static int SDLGui_SearchFlaggedButton(const SGOBJ *dlg, int flag)
 
 
 extern int touch;
-int gmx=(retrow/2 )-1,gmy=(retroh/2)-1;
+int gmx,gmy;
 int okold=0,boutc=0;
 
 /*-----------------------------------------------------------------------*/

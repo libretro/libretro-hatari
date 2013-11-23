@@ -35,7 +35,11 @@ Ex for android :
 > adb push libretro-hatari.so /mnt/sdcard/
 > adb shell
   >> su
+FOR OLD RETROARCH:
   >># cp /mnt/sdcard/libretro-hatari.so /data/data/org.retroarch/lib/
+FOR NEW RETROARCH:
+  >># cp /mnt/sdcard/libretro-hatari.so /data/data/com.retroarch/cores/
+
 
 III) To configure , you have to :
 
@@ -43,11 +47,11 @@ III) To configure , you have to :
     to match your rompath,tospath,hdpath,logpath ...
     and put it in the HATARI CONFDIR directory. 
 
-    If you don't put an hatari.cfg in CONFDIR (and then choose the hardway) , 
-    an alert will tell you that rom is not found
-    and bring you to GUI ( you have then to go to ROM and choose a valid tos file)
+    If you don't put an hatari.cfg in CONFDIR
+    i'll be bring to GUI ( you have then to go to ROM and choose a valid tos file)
 
-    TIPS: in GUI if you have no mouse , you have to push SELECT to toggle to mouse mode.
+    TIPS: in GUI if you cant mouve cursor , you have to push SELECT to toggle emulated mouse mode.
+
 
 The HATARI CONFDIR is specific to platform and is for now hardcoded (in main.c) to :
 

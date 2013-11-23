@@ -852,7 +852,13 @@ static void Screen_DidResolutionChange(int new_res)
 	}
 }
 
-
+#ifdef RETRO
+void reset_screen(){
+	Resolution_Init();
+	Screen_SetResolution();
+	Screen_SetFullUpdate();
+}
+#endif
 /*-----------------------------------------------------------------------*/
 /**
  * Force things associated with changing between low/medium/high res.

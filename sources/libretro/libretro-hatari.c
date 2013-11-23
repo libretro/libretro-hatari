@@ -7,9 +7,15 @@
 cothread_t mainThread;
 cothread_t emuThread;
 
+int CROP_WIDTH;
+int CROP_HEIGHT;
+int VIRTUAL_WIDTH ;
+int retrow=1024; 
+int retroh=1024;
+
 int romnotfoundatstart=0;	
 
-extern unsigned short int bmp[TEX_WIDTH * TEX_HEIGHT];
+extern unsigned short int bmp[1024*1024];
 extern int STATUTON,SHOWKEY,SHIFTON,RLOOP,pauseg,SND ,snd_sampler;
 extern short signed int SNDBUF[1024*2];
 extern char RPATH[512];
@@ -23,6 +29,55 @@ static retro_video_refresh_t video_cb;
 static retro_audio_sample_t audio_cb;
 static retro_audio_sample_batch_t audio_batch_cb;
 static retro_environment_t environ_cb;
+
+void retro_set_environment(retro_environment_t cb)
+{
+   environ_cb = cb;
+
+   struct retro_variable variables[] = {
+      {
+         "resolution",
+         "Internal resolution; 640x480|832x576|800x600|960x720|1024x768|1024x1024",
+
+      },
+      { NULL, NULL },
+   };
+
+   bool no_rom = true;
+   cb(RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME, &no_rom);
+   cb(RETRO_ENVIRONMENT_SET_VARIABLES, variables);
+}
+
+
+static void update_variables(void)
+{
+   struct retro_variable var = {
+      .key = "resolution",
+   };
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      char *pch;
+      char str[100];
+      snprintf(str, sizeof(str), var.value);
+      
+      pch = strtok(str, "x");
+      if (pch)
+         retrow = strtoul(pch, NULL, 0);
+      pch = strtok(NULL, "x");
+      if (pch)
+         retroh = strtoul(pch, NULL, 0);
+
+      fprintf(stderr, "[libretro-test]: Got size: %u x %u.\n", retrow, retroh);
+
+	CROP_WIDTH =retrow;
+	CROP_HEIGHT= (retroh-80);
+	VIRTUAL_WIDTH = retrow;
+	texture_init();
+	reset_screen();
+   }
+
+}
 
 static void retro_wrap_emulator()
 {    
@@ -45,6 +100,15 @@ static void retro_wrap_emulator()
 }
 
 void Emu_init(){
+
+#ifdef RETRO_AND
+//you can change this after in core option if device support to setup a 832x576 res 
+	retrow=640; 
+	retroh=480;
+	MOUSEMODE=1;
+#endif
+
+	update_variables();
 
 	memset(Key_Sate,0,512);
 	memset(Key_Sate2,0,512);
@@ -70,8 +134,9 @@ void retro_init(void)
     		exit(0);//return false;
     	}
 
-	texture_init();
 	Emu_init();
+	texture_init();
+
 }
 
 void retro_deinit(void)
@@ -110,18 +175,18 @@ void retro_get_system_info(struct retro_system_info *info)
 
 void retro_get_system_av_info(struct retro_system_av_info *info)
 {
-   	struct retro_game_geometry geom = { TEX_WIDTH, TEX_HEIGHT, TEX_WIDTH, TEX_HEIGHT,4.0 / 3.0 };
+   	struct retro_game_geometry geom = { retrow, retroh, 1024, 1024,4.0 / 3.0 };
    	struct retro_system_timing timing = { 50.0, 44100.0 };
    
    	info->geometry = geom;
    	info->timing   = timing;
 }
- 
+/* 
 void retro_set_environment(retro_environment_t cb)
 {
    	environ_cb = cb;
 }
-
+*/
 void retro_set_audio_sample(retro_audio_sample_t cb)
 {
    	audio_cb = cb;
@@ -148,6 +213,11 @@ void retro_run(void)
 {
    	int x;
 
+	bool updated = false;
+
+	if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated)
+	      update_variables();
+
    	if(pauseg==0){
 
 	   	update_input();
@@ -157,17 +227,17 @@ void retro_run(void)
    	   		for(x=0;x<snd_sampler;x++)audio_cb(*p++,*p++);			
 	   	}
    	   	
-		if(ConfigureParams.Screen.bAllowOverscan)video_cb(bmp,TEX_WIDTH, TEX_HEIGHT, TEX_WIDTH << 1);
+		if(ConfigureParams.Screen.bAllowOverscan)video_cb(bmp,retrow,retroh, retrow<< 1);
 		//NO BORDER 
 		else {
 			//VKBD or STATUT then extra height
-			if(SHOWKEY==1 || STATUTON==1)video_cb(bmp,640,480, TEX_WIDTH << 1);
+			if(SHOWKEY==1 || STATUTON==1)video_cb(bmp,retrow,retroh, retrow << 1);
 			// EMU ST FULLSCREEN NO BORDER
-			else video_cb(bmp,640,400, TEX_WIDTH << 1);
+			else video_cb(bmp,640/*retrow*/,400/*retrow-80*/,retrow << 1);
 		}
 
    	}   	
-	else  	video_cb(bmp,TEX_WIDTH, TEX_HEIGHT, TEX_WIDTH << 1);
+	else  	video_cb(bmp,retrow,retroh , retrow << 1);
 
 	co_switch(emuThread);
    	

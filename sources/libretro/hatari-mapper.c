@@ -15,11 +15,11 @@
 #include <time.h>
 #endif
 
-unsigned short int bmp[TEX_WIDTH * TEX_HEIGHT];
+unsigned short int bmp[1024*1024];
 SDL_Surface sdlscrn;  
 
 int RLOOP=1,NPAGE=-1, KCOL=1, BKGCOLOR=0, MAXPAS=6;
-int SHIFTON=-1,MOUSEMODE=1,NUMJOY=0,SHOWKEY=-1,PAS=4,STATUTON=-1;
+int SHIFTON=-1,MOUSEMODE=-1,NUMJOY=0,SHOWKEY=-1,PAS=4,STATUTON=-1;
 static int firstps=0;
 
 short signed int SNDBUF[1024*2];
@@ -38,7 +38,7 @@ int NUMjoy=1;
 char Key_Sate[512];
 char Key_Sate2[512];
 	
-unsigned char savbkg[TEX_WIDTH * TEX_HEIGHT * 2];
+unsigned char savbkg[1024*1024* 2];
 
 static int mbt[16]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
@@ -47,7 +47,7 @@ unsigned long  Ktime=0 , LastFPSTime=0;
 
 extern int LEDA,LEDB,LEDC;
 int BOXDEC= 32+2;
-int STAT_BASEY=CROP_HEIGHT;
+int STAT_BASEY;
 
 extern bool Dialog_DoProperty(void);
 extern void Screen_SetFullUpdate(void);
@@ -117,8 +117,8 @@ void save_bkg(){
 	int i,j,k=0;	
 	unsigned char *ptr=&sdlscrn.bitmap[0];
 
-	for(j=0;j<TEX_HEIGHT;j++){
-		for(i=0;i<TEX_WIDTH*2;i++){		
+	for(j=0;j<retroh;j++){
+		for(i=0;i<retrow*2;i++){		
 			savbkg[k]=*ptr;
 			ptr++;
 			k++;
@@ -130,10 +130,14 @@ void texture_init(){
 
 	memset(bmp, 0, sizeof(bmp));
 
-	sdlscrn.w=TEX_WIDTH;
-	sdlscrn.h=TEX_HEIGHT;
+	sdlscrn.w=retrow;
+	sdlscrn.h=retroh;
 	sdlscrn.bitmap=(unsigned char *)&bmp[0];
-	sdlscrn.stride=TEX_WIDTH*2;
+	sdlscrn.stride=retrow*2;
+
+	gmx=(retrow/2 )-1;
+	gmy=(retroh/2)-1;
+
 }
 
 void pause_select(){
@@ -155,6 +159,8 @@ void enter_gui(){
 }
 
 void Print_Statut(){
+
+	STAT_BASEY=CROP_HEIGHT;
 
 	DrawFBoxBmp(bmp,0,CROP_HEIGHT,CROP_WIDTH,STAT_YSZ,RGB565(0,0,0));
 
@@ -559,9 +565,9 @@ void input_gui()
         gmx+=mouse_x;
         gmy+=mouse_y;
 	if(gmx<0)gmx=0;
-        if(gmx>TEX_WIDTH-1)gmx=TEX_WIDTH-1;
+        if(gmx>retrow-1)gmx=retrow-1;
         if(gmy<0)gmy=0;
-        if(gmy>TEX_HEIGHT-1)gmy=TEX_HEIGHT-1;
+        if(gmy>retroh-1)gmy=retroh-1;
 
 }
 

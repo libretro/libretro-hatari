@@ -1,11 +1,6 @@
 		HATARI 1.7.0 LIBRETRO DEBUG VERSION
 
 
-What?: First attempt to build Hatari with libretro 
-Why ?: Because i like old atari computer
-Who ?: Rtype 
-
-
 All credits to HATARI DEV TEAM : http://hatari.tuxfamily.org/
 you can download the hatari source code here : http://download.tuxfamily.org/hatari/1.7.0/ 
 
@@ -17,22 +12,24 @@ At this time , works the basis but buggy on linux, android , win and experimenta
 Remember ,Everything not working well, It's a debug release , so expect to more bug.
 
 
+
 Default Control :
 
-L2  Show/Hide statut
-R2  Swap kbd pages 
-L   Show/Hide vkbd .
-R   Change Mouse speed 1 to 6 . (for gui and emu)
-SEL Toggle mouse/joy mode .
-STR Toggle num joy . 
-A   Fire/Mouse btn A / Valid key in vkbd
-B   Mouse btn B
-X   Switch Shift ON/OFF
-Y   Hatari Gui
+L2  Show/Hide statut            (show: JOY/MOUSE MODE | SHIFTON | MOUSE SPEED | NUM JOY | LED ACTIVITY )
+R2  Swap kbd pages              (virtual keyboard : toggle Page 1 / 2 ) 
+L   Show/Hide vkbd              (show or hide virtual keyboard )
+R   Change Mouse speed 1 to 6   (set mouse mode speed : for gui and emu)
+SEL Toggle mouse/joy mode       (switch to joymode or mouse mode)
+STR Toggle num joy              (switch to joy 0 or joy1 )
+A   Fire / Mouse btnA / Valid key in vkbd 
+B   Mouse btn B  
+X   Switch Shift ON/OFF         (toggle Shift ON or OFF )
+Y   Hatari Gui                  (bring hatari GUI)
+
 
 
 See INSTALL.TXT for info about howto build,install and configure .
 
 
-
+Rtype
 

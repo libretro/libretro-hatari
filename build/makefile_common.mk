@@ -135,8 +135,14 @@ $(EMU)/ymFormat.o \
 $(ALTEMU)/bmp.o
 
 LIBCO_SRCS = $(LIBCOOBJ)/libco.o 
+
 ifeq ($(platform),android)
 LIBCO_SRCS += $(LIBCOOBJ)/armeabi_asm.o
+else
+UNAME_M := $(shell uname -m)
+ifneq ($(filter arm%,$(UNAME_M)),)
+LIBCO_SRCS += $(LIBCOOBJ)/armeabi_asm.o	
+endif
 endif
 
 BUILD_APP =  $(ZLIB_OBJECTS) $(CPUC_SRCS) $(FALC_SRCS)  $(FLP_SRCS) $(DBG_SRCS)  $(CORE_SRCS) $(DLG_SRCS) $(LIBCO_SRCS)

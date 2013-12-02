@@ -5,6 +5,8 @@
 #include "graph.h"
 #include "vkbd.h"
 
+#include "joy.h"
+
 #ifdef PS3PORT
 #include "sys/sys_time.h"
 #include "sys/timer.h"
@@ -14,6 +16,9 @@
 #include <sys/time.h>
 #include <time.h>
 #endif
+
+int al[2];//left analog1
+int ar[2];//right analog1
 
 unsigned short int bmp[1024*1024];
 SDL_Surface sdlscrn;  
@@ -257,8 +262,8 @@ Y   Emu Gui
 void update_input(void)
 {
 	int i;
-	//   RETRO      B    Y    SLT  STA  UP   DWN  LEFT RGT  A    X    L    R    L2   R2   L3   R3
-        //   INDEX      0    1    2    3    4    5    6    7    8    9    10   11   12   13   14   15
+	//   RETRO           B    Y    SLT  STA  UP   DWN  LEFT RGT  A    X    L    R    L2   R2   L3   R3
+        //   INDEX       0     1    2    3    4    5    6    7    8    9    10   11   12   13   14   15
 	static int vbt[16]={0x1C,0x39,0x01,0x3B,0x01,0x02,0x04,0x08,0x80,0x6D,0x15,0x31,0x24,0x1F,0x6E,0x6F};
 	static int oldi=-1;
 	static int vkx=0,vky=0;
@@ -439,7 +444,24 @@ void update_input(void)
    	int16_t mouse_y;
   
 	if(MOUSEMODE==-1){ //Joy mode
-
+	
+	
+		//emulate Joy0 with joy analog left 
+        	al[0] =(input_state_cb(0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_X));///2;
+        	al[1] =(input_state_cb(0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_Y));///2;
+		
+		/* Directions */
+		if (al[1] <= JOYRANGE_UP_VALUE)
+			MXjoy0 |= ATARIJOY_BITMASK_UP;
+		else if (al[1] >= JOYRANGE_DOWN_VALUE)
+			MXjoy0 |= ATARIJOY_BITMASK_DOWN;
+			
+		if (al[0] <= JOYRANGE_LEFT_VALUE)
+			MXjoy0 |= ATARIJOY_BITMASK_LEFT;
+		else if (al[0] >= JOYRANGE_RIGHT_VALUE)
+			MXjoy0 |= ATARIJOY_BITMASK_RIGHT;
+		
+	
 		for(i=4;i<9;i++)if( input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, i) )MXjoy0 |= vbt[i]; // Joy press	
 
 	   	mouse_x = input_state_cb(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_X);
@@ -454,12 +476,19 @@ void update_input(void)
 	else {  //Mouse mode
 		fmousex=fmousey=0;
 
+		//emulate mouse with joy analog right 
+		ar[0] = (input_state_cb(0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_RIGHT, RETRO_DEVICE_ID_ANALOG_X));
+        	ar[1] = (input_state_cb(0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_RIGHT, RETRO_DEVICE_ID_ANALOG_Y));
+			 
+        	if(ar[0]<=-1024)fmousex-=(-ar[0])/1024;
+		if(ar[0]>= 1024)fmousex+=( ar[0])/1024;
+		if(ar[1]<=-1024)fmousey-=(-ar[1])/1024;
+		if(ar[1]>= 1024)fmousey+=( ar[1])/1024;
+
+		//emulate mouse with dpad
 		if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT))fmousex += PAS;
-
 		if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT))fmousex -= PAS;
-
 		if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_DOWN))fmousey += PAS;
-
 		if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP))fmousey -= PAS;
 
 		mouse_l=input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_A);

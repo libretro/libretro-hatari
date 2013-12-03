@@ -23,7 +23,7 @@ int ar[2];//right analog1
 unsigned short int bmp[1024*1024];
 SDL_Surface sdlscrn;  
 
-int RLOOP=1,NPAGE=-1, KCOL=1, BKGCOLOR=0, MAXPAS=6;
+int NPAGE=-1, KCOL=1, BKGCOLOR=0, MAXPAS=6;
 int SHIFTON=-1,MOUSEMODE=-1,NUMJOY=0,SHOWKEY=-1,PAS=4,STATUTON=-1;
 static int firstps=0;
 

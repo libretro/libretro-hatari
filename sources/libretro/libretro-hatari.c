@@ -13,10 +13,8 @@ int VIRTUAL_WIDTH ;
 int retrow=1024; 
 int retroh=1024;
 
-int romnotfoundatstart=0;	
-
 extern unsigned short int bmp[1024*1024];
-extern int STATUTON,SHOWKEY,SHIFTON,RLOOP,pauseg,SND ,snd_sampler;
+extern int STATUTON,SHOWKEY,SHIFTON,pauseg,SND ,snd_sampler;
 extern short signed int SNDBUF[1024*2];
 extern char RPATH[512];
 
@@ -225,19 +223,12 @@ void retro_run(void)
 	   	if(SND==1){
    	   		signed short int *p=(signed short int *)SNDBUF;
    	   		for(x=0;x<snd_sampler;x++)audio_cb(*p++,*p++);			
-	   	}
-   	   	
-		if(ConfigureParams.Screen.bAllowOverscan)video_cb(bmp,retrow,retroh, retrow<< 1);
-		//NO BORDER 
-		else {
-			//VKBD or STATUT then extra height
-			if(SHOWKEY==1 || STATUTON==1)video_cb(bmp,retrow,retroh, retrow << 1);
-			// EMU ST FULLSCREEN NO BORDER
-			else video_cb(bmp,640/*retrow*/,400/*retrow-80*/,retrow << 1);
-		}
-
+	   	}	
    	}   	
-	else  	video_cb(bmp,retrow,retroh , retrow << 1);
+
+	if(ConfigureParams.Screen.bAllowOverscan || SHOWKEY==1 || STATUTON==1 || pauseg==1 )video_cb(bmp,retrow,retroh, retrow<< 1);
+	// EMU ST FULLSCREEN NO BORDER
+	else video_cb(bmp,640/*retrow*/,400/*retrow-80*/,retrow << 1);
 
 	co_switch(emuThread);
    	

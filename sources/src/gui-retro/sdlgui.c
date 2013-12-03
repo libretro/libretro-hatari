@@ -29,6 +29,45 @@ extern void Draw_text(unsigned  short *buffer,int x,int y,unsigned  short  fgcol
 extern void DrawFBoxBmp(unsigned  short  *buffer,int x,int y,int dx,int dy,unsigned  short color);
 extern void input_gui();
 
+static const char *cross[] = {
+  "X                               ",
+  "XX                              ",
+  "X.X                             ",
+  "X..X                            ",
+  "X...X                           ",
+  "X....X                          ",
+  "X.....X                         ",
+  "X......X                        ",
+  "X.......X                       ",
+  "X........X                      ",
+  "X.....XXXXX                     ",
+  "X..X..X                         ",
+  "X.X X..X                        ",
+  "XX  X..X                        ",
+  "X    X..X                       ",
+  "     X..X                       ",
+  "      X..X                      ",
+  "      X..X                      ",
+  "       XX                       ",
+  "                                ",
+};
+
+void draw_cross(int x,int y) {
+
+	int i,j,idx;
+	int dx=32,dy=20;
+	unsigned  short color;
+
+	for(j=y;j<y+dy;j++){
+		idx=0;
+		for(i=x;i<x+dx;i++){
+			if(cross[j-y][idx]=='.')DrawPointBmp(bmp,i,j,0xffff);
+			else if(cross[j-y][idx]=='X')DrawPointBmp(bmp,i,j,0);
+			idx++;			
+		}
+	}
+}
+
 #define DrawBoxF( x,  y,  z,  dx,  dy, rgba) \
 	DrawFBoxBmp(bmp, x, y, dx, dy,RGB565(((rgba>>24)&0xff)>>3,((rgba>>16)&0xff)>>3,((rgba>>8)&0xff)>>3 ))
 
@@ -645,15 +684,14 @@ int SDLGui_DoDialog(SGOBJ *dlg, int/*SDL_Event */*pEventOut)
 	while (retbutton == 0 && !bQuitProgram)
 	{
 
-
 		input_gui();
-
-
-		DrawBoxF(gmx,gmy,0,8,8, 0xFF0000FF);
-
+		
+		draw_cross(gmx,gmy);
 
                 if(touch!=-1 && okold==0 ){
-okold=1;
+
+			okold=1;
+
 			obj = SDLGui_FindObj(dlg, gmx, gmy);
 				if (obj>0)
 				{

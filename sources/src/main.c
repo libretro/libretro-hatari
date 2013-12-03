@@ -60,14 +60,12 @@ const char Main_fileid[] = "Hatari main.c : " __DATE__ " " __TIME__;
 //DEB RETRO HACK
 #ifdef RETRO
 
-extern int romnotfoundatstart;	
-
 #ifdef PS3PORT
 #undef HAVE_GETTIMEOFDAY
 #undef HAVE_NANOSLEEP
 #endif
 
-extern int RLOOP,pauseg;
+extern int pauseg;
 extern int fmousex,fmousey;
 extern int SND;
 #define sysconf(a) a

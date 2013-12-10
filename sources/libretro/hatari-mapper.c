@@ -112,8 +112,8 @@ void gui_poll_events(){
 	if(Ktime - LastFPSTime >= 1000/50){
 		frame++; 
  	    	LastFPSTime = Ktime;		
-		//co_switch(mainThread);
-		retro_run();
+		co_switch(mainThread);
+		//retro_run();
  	}
 }
 
@@ -277,7 +277,7 @@ void update_input(void)
 	
     	if (Key_Sate[RETROK_F11] || input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_Y) ){
 		pauseg=1;
-		pause_select();
+		//pause_select();
 	}
 
 	i=10;//show vkey toggle

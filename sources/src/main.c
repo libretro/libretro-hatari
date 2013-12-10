@@ -332,6 +332,7 @@ void Main_WaitOnVbl(void)
 	Sint64 nDelay;
 
 #ifdef RETRO
+	if(pauseg==1)pause_select();
 	co_switch(mainThread);
 #endif
 	nVBLCount++;
